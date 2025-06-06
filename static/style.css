@@ -1,0 +1,97 @@
+/* Duolingo-Inspired Dark Mode */
+
+body {
+  background-color: #121212;
+  color: #f0f0f0;
+  font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+  margin: 0;
+  padding: 2rem;
+}
+
+.container {
+  max-width: 700px;
+  margin: auto;
+  background: #1e1e1e;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  color: #00c896;
+}
+
+h2 {
+  font-size: 1.2rem;
+  color: #90f7d6;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 0.7rem;
+  font-size: 1rem;
+  border-radius: 12px;
+  border: none;
+  margin-bottom: 1rem;
+  background-color: #2a2a2a;
+  color: #f0f0f0;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+button {
+  background-color: #00c896;
+  color: #121212;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  margin-right: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background-color: #00a779;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+#result {
+  margin-top: 2rem;
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+.section {
+  margin-bottom: 2rem;
+  background: #2a2a2a;
+  padding: 1rem;
+  border-radius: 10px;
+}
+
+.section h2 {
+  margin-bottom: 0.5rem;
+}
+
+a {
+  color: #ffd166;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.error {
+  color: #ff4c4c;
+}
+
+.loading {
+  color: #bbbbbb;
+  font-style: italic;
+}

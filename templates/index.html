@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>ai-learn-daily</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    #result {
+      margin-top: 2rem;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+
+    .section {
+      margin-bottom: 1.5rem;
+    }
+
+    .section h2 {
+      margin-bottom: 0.5rem;
+    }
+
+    .error {
+      color: red;
+    }
+
+    .loading {
+      color: #888;
+      font-style: italic;
+    }
+
+    .speak-button {
+      background-color: #ffd166;
+      color: #121212;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 12px;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+    }
+
+    .speak-button:hover {
+      background-color: #ffbc00;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>ai-learn-daily</h1>
+    <input type="text" id="topicInput" placeholder="Enter a topic..." />
+    <button onclick="fetchLesson()">Get Lesson</button>
+    <button onclick="fetchWikipediaTopic()">🎲 Today's Wikipedia Topic</button>
+
+    <h2 id="dailyHeader"></h2>
+    <div id="feedback" class="loading"></div>
+    <div id="result"></div>
+    <button id="speakBtn" class="speak-button" onclick="speakSummary()" style="display: none;">🔊 Narrate
+      Summary</button>
+  </div>
+
+  <script>
+    async function fetchLesson() {
+      const topic = document.getElementById("topicInput").value.trim();
+      const resultDiv = document.getElementById("result");
+      const feedbackDiv = document.getElementById("feedback");
+      const header = document.getElementById("dailyHeader");
+      const speakBtn = document.getElementById("speakBtn");
+
+      resultDiv.innerHTML = "";
+      feedbackDiv.className = "";
+      header.textContent = "";
+      speakBtn.style.display = "none";
+
+      if (!topic) {
+        feedbackDiv.className = "error";
+        feedbackDiv.textContent = "⚠️ Please enter a topic.";
+        return;
+      }
+
+      feedbackDiv.className = "loading";
+      feedbackDiv.textContent = "Thinking...";
+
+      try {
+        const response = await fetch("/learn", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ topic })
+        });
+
+        const data = await response.json();
+        feedbackDiv.textContent = "";
+
+        if (data.error) {
+          resultDiv.innerHTML = `<p class="error">❌ ${data.error}</p>`;
+          return;
+        }
+
+        const text = data.response;
+        const summary = extractSection(text, "Summary:") || "<em>No summary found.</em>";
+        const questions = extractSection(text, "Practice Questions:") || "<em>No questions found.</em>";
+        const resources = extractSection(text, "Resources:") || "<em>No resources found.</em>";
+
+        resultDiv.innerHTML = `
+          <div class="section"><h2>📘 Summary</h2><p>${summary}</p></div>
+          <div class="section"><h2>📜 Practice Questions</h2><p>${questions}</p></div>
+          <div class="section"><h2>🔗 Resources</h2><ul>${formatLinks(resources)}</ul></div>
+        `;
+
+        speakBtn.style.display = "inline-block"; // show narrator button now
+      } catch (err) {
+        feedbackDiv.className = "error";
+        feedbackDiv.textContent = "Something went wrong. Check your server.";
+      }
+    }
+
+    function extractSection(text, header) {
+      const start = text.indexOf(header);
+      if (start === -1) return "";
+      const rest = text.slice(start + header.length);
+      const nextHeader = rest.match(/^[A-Z][^:\n]+:/m);
+      const end = nextHeader ? rest.indexOf(nextHeader[0]) : rest.length;
+      return rest.slice(0, end).trim();
+    }
+
+    function formatLinks(sectionText) {
+      const lines = sectionText.split("\n").filter(line => line.trim() !== "");
+      return lines.map(line => {
+        const lower = line.toLowerCase();
+        const topic = document.getElementById("topicInput").value.trim();
+        if (lower.includes("wikipedia")) {
+          return `<li><a href="https://en.wikipedia.org/wiki/${encodeURIComponent(topic)}" target="_blank">Wikipedia</a></li>`;
+        }
+        if (lower.includes("youtube")) {
+          return `<li><a href="https://www.youtube.com/results?search_query=${encodeURIComponent(topic)}" target="_blank">YouTube Search</a></li>`;
+        }
+        if (lower.includes("course")) {
+          return `<li><a href="https://www.google.com/search?q=${encodeURIComponent(topic)}+site%3Acoursera.org+OR+site%3Aedx.org+OR+site%3Akhanacademy.org" target="_blank">Course Search</a></li>`;
+        }
+        return `<li>${line}</li>`;
+      }).join("");
+    }
+
+    async function fetchWikipediaTopic() {
+      const resultDiv = document.getElementById("result");
+      const header = document.getElementById("dailyHeader");
+      const topicInput = document.getElementById("topicInput");
+      const feedbackDiv = document.getElementById("feedback");
+      const speakBtn = document.getElementById("speakBtn");
+
+      feedbackDiv.className = "loading";
+      feedbackDiv.textContent = "Fetching today’s featured article from Wikipedia...";
+      speakBtn.style.display = "none";
+
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, "0");
+      const dd = String(today.getDate()).padStart(2, "0");
+
+      const wikiURL = `https://en.wikipedia.org/api/rest_v1/feed/featured/${yyyy}/${mm}/${dd}`;
+
+      try {
+        const response = await fetch(wikiURL);
+        const data = await response.json();
+
+        const featured = data.tfa?.titles?.normalized || data.tfa?.displaytitle || "random topic";
+
+        topicInput.value = featured;
+        header.textContent = `📅 Today's Wikipedia Topic: ${featured}`;
+        feedbackDiv.textContent = "";
+
+        await fetchLesson();
+      } catch (error) {
+        feedbackDiv.className = "error";
+        feedbackDiv.textContent = "⚠️ Failed to load today's featured article. Try again later.";
+        resultDiv.innerHTML = "";
+      }
+    }
+
+    function speakSummary() {
+      const allSections = document.querySelectorAll(".section");
+      let summaryText = "";
+
+      allSections.forEach(section => {
+        const title = section.querySelector("h2")?.textContent?.toLowerCase();
+        if (title?.includes("summary")) {
+          summaryText = section.querySelector("p")?.textContent?.trim();
+        }
+      });
+
+      if (!summaryText) {
+        alert("No summary to read.");
+        return;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(summaryText);
+      utterance.lang = "en-US";
+      utterance.rate = 1;
+      utterance.pitch = 1;
+
+      const voices = window.speechSynthesis.getVoices();
+      const preferred = voices.find(v => v.name.includes("Google") || v.lang === "en-US");
+      if (preferred) utterance.voice = preferred;
+
+      speechSynthesis.speak(utterance);
+    }
+  </script>
+</body>
+
+</html>
