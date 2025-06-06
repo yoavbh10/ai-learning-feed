@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # Set your Cohere API key (can also be passed as environment variable)
-COHERE_API_KEY = os.getenv("COHERE_API_KEY")
+COHERE_API_KEY = os.getenv("COHERE_API_KEY", "your-cohere-api-key-here")
 co = cohere.Client(COHERE_API_KEY)
 
 @app.route("/", methods=["GET"])
