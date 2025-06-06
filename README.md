@@ -11,9 +11,9 @@ Powered by Cohere’s large language models, this app generates:
 
 ---
 
-## 🌍 Live Demo (optional)
+## 🌐 Live Demo
 
-Coming soon...
+Try it here: [https://ai-learning-feed.onrender.com/](https://ai-learning-feed.onrender.com/)
 
 ---
 
@@ -76,13 +76,21 @@ Visit http://127.0.0.1:5000 in your browser.
 
 ai-learning-feed/
 ├── app.py
+
 ├── .env
+
 ├── .gitignore
+
 ├── README.md
+
 ├── templates/
+
 │   └── index.html
+
 ├── static/
+
 │   └── style.css
+
 └── venv/
 
 ## ✨ Future Improvements
